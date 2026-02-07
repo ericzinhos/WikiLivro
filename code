@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criador de Livros Wiki</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .language-selector label {
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 80px;
+        }
+
+        .language-selector select {
+            margin-bottom: 0;
+        }
+
+        .article-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .article-input-group input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+            padding: 8px 15px;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-move {
+            background: #718096;
+            color: white;
+            padding: 5px 10px;
+            font-size: 14px;
+            margin: 0 2px;
+        }
+
+        .btn-move:hover {
+            background: #4a5568;
+        }
+
+        .article-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .article-item {
+            background: #f7fafc;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .article-item span {
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .article-item .order {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .article-controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .progress {
+            background: #e2e8f0;
+            border-radius: 8px;
+            height: 30px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress.active {
+            display: block;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Criador de Livros Wiki</h1>
+        
+        <div class="section">
+            <div class="section-title">Informações do Livro</div>
+            <input type="text" id="bookTitle" placeholder="Título do Livro" />
+            <input type="text" id="bookSubtitle" placeholder="Subtítulo do Livro" />
+            
+            <div class="language-selector">
+                <label for="language">Idioma Wiki:</label>
+                <select id="language">
+                    <option value="pt">Português (pt)</option>
+                    <option value="en">English (en)</option>
+                    <option value="es">Español (es)</option>
+                    <option value="fr">Français (fr)</option>
+                    <option value="de">Deutsch (de)</option>
+                    <option value="it">Italiano (it)</option>
+                    <option value="ja">日本語 (ja)</option>
+                    <option value="zh">中文 (zh)</option>
+                    <option value="ru">Русский (ru)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Artigos da Wikipédia</div>
+            <div class="article-input-group">
+                <input type="text" id="articleInput" placeholder="Nome do artigo (ex: Albert Einstein)" />
+                <button class="btn btn-primary" onclick="addArticle()">Adicionar</button>
+            </div>
+            <div class="error" id="errorMsg"></div>
+            <ul class="article-list" id="articleList"></ul>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loadingText">Gerando seu livro...</p>
+        </div>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+
+        <button class="btn btn-success" onclick="generatePDF()">📥 Gerar e Baixar PDF</button>
+    </div>
+
+    <script>
+        let articles = [];
+
+        function addArticle() {
+            const input = document.getElementById('articleInput');
+            const articleName = input.value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            
+            errorMsg.classList.remove('active');
+            
+            if (!articleName) {
+                errorMsg.textContent = 'Por favor, digite o nome de um artigo.';
+                errorMsg.classList.add('active');
+                return;
+            }
+            
+            if (articles.includes(articleName)) {
+                errorMsg.textContent = 'Este artigo já foi adicionado.';
+                errorMsg.classList.add('active');
+                return;
+            }
+            
+            articles.push(articleName);
+            input.value = '';
+            updateArticleList();
+        }
+
+        function removeArticle(index) {
+            articles.splice(index, 1);
+            updateArticleList();
+        }
+
+        function moveArticle(index, direction) {
+            if (direction === 'up' && index > 0) {
+                [articles[index], articles[index - 1]] = [articles[index - 1], articles[index]];
+                updateArticleList();
+            } else if (direction === 'down' && index < articles.length - 1) {
+                [articles[index], articles[index + 1]] = [articles[index + 1], articles[index]];
+                updateArticleList();
+            }
+        }
+
+        function updateArticleList() {
+            const list = document.getElementById('articleList');
+            list.innerHTML = '';
+            
+            articles.forEach((article, index) => {
+                const li = document.createElement('li');
+                li.className = 'article-item';
+                li.innerHTML = `
+                    <div>
+                        <span class="order">${index + 1}</span>
+                        <span>${article}</span>
+                    </div>
+                    <div class="article-controls">
+                        ${index > 0 ? `<button class="btn btn-move" onclick="moveArticle(${index}, 'up')">▲</button>` : ''}
+                        ${index < articles.length - 1 ? `<button class="btn btn-move" onclick="moveArticle(${index}, 'down')">▼</button>` : ''}
+                        <button class="btn btn-danger" onclick="removeArticle(${index})">Remover</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        async function fetchWikipediaComplete(articleTitle, language) {
+            const url = `https://${language}.wikipedia.org/w/api.php?action=parse&format=json&origin=*&page=${encodeURIComponent(articleTitle)}&prop=text|displaytitle`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.error) {
+                    return null;
+                }
+                
+                let html = data.parse.text['*'];
+                const title = data.parse.displaytitle;
+                
+                // Criar um DOM parser para manipular o HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Remover elementos indesejados
+                const selectorsToRemove = [
+                    '.mw-editsection',
+                    '.noprint',
+                    '.ambox',
+                    '.navbox',
+                    '.vertical-navbox',
+                    '.sistersitebox',
+                    '.mbox-small',
+                    '.hatnote',
+                    '#catlinks',
+                    '.printfooter',
+                    '.mw-indicators',
+                    'style',
+                    '.Portal',
+                    '.portal-bar',
+                    '[class*="portal"]',
+                    '[class*="navbox"]',
+                    '[class*="metadata"]',
+                    '.refbegin',
+                    '.reflist'
+                ];
+                
+                selectorsToRemove.forEach(selector => {
+                    doc.querySelectorAll(selector).forEach(el => el.remove());
+                });
+                
+                // Processar imagens
+                doc.querySelectorAll('img').forEach(img => {
+                    let src = img.getAttribute('src');
+                    let srcset = img.getAttribute('srcset');
+                    
+                    if (!src) return;
+                    
+                    // Converter para URL absoluta
+                    if (src.startsWith('//')) {
+                        src = 'https:' + src;
+                    }
+                    
+                    // Remover thumbs e pegar imagem original
+                    if (src.includes('/thumb/')) {
+                        // Extrair o caminho da imagem original
+                        const match = src.match(/\/thumb\/(.*?)\/\d+px-/);
+                        if (match) {
+                            src = 'https://upload.wikimedia.org/wikipedia/commons/' + match[1];
+                        } else {
+                            // Tentar remover apenas a parte do thumb
+                            src = src.replace('/thumb', '').replace(/\/\d+px-.*$/, '');
+                        }
+                    }
+                    
+                    // Se ainda tiver parâmetros de tamanho, remover
+                    src = src.split('?')[0];
+                    
+                    img.setAttribute('src', src);
+                    img.removeAttribute('srcset');
+                    img.removeAttribute('width');
+                    img.removeAttribute('height');
+                    
+                    // Adicionar atributo para forçar carregamento
+                    img.setAttribute('loading', 'eager');
+                    img.setAttribute('crossorigin', 'anonymous');
+                });
+                
+                // Processar links
+                doc.querySelectorAll('a').forEach(link => {
+                    let href = link.getAttribute('href');
+                    if (href && href.startsWith('/wiki/')) {
+                        link.setAttribute('href', `https://${language}.wikipedia.org${href}`);
+                    } else if (href && href.startsWith('/w/')) {
+                        link.setAttribute('href', `https://${language}.wikipedia.org${href}`);
+                    }
+                });
+                
+                // Processar srcset de imagens
+                doc.querySelectorAll('[srcset]').forEach(el => {
+                    let srcset = el.getAttribute('srcset');
+                    if (srcset) {
+                        srcset = srcset.replace(/\/\//g, 'https://');
+                        el.setAttribute('srcset', srcset);
+                    }
+                });
+                
+                return {
+                    title: title,
+                    content: doc.body.innerHTML
+                };
+            } catch (error) {
+                console.error('Erro ao buscar artigo:', error);
+                return null;
+            }
+        }
+
+        function updateProgress(current, total) {
+            const progressBar = document.getElementById('progressBar');
+            const progress = document.getElementById('progress');
+            const percentage = Math.round((current / total) * 100);
+            
+            progress.classList.add('active');
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+        }
+
+        async function generatePDF() {
+            const title = document.getElementById('bookTitle').value.trim();
+            const subtitle = document.getElementById('bookSubtitle').value.trim();
+            const language = document.getElementById('language').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
+            
+            errorMsg.classList.remove('active');
+            
+            if (!title) {
+                errorMsg.textContent = 'Por favor, adicione um título ao livro.';
+                errorMsg.classList.add('active');
+                return;
+            }
+            
+            if (articles.length === 0) {
+                errorMsg.textContent = 'Por favor, adicione pelo menos um artigo.';
+                errorMsg.classList.add('active');
+                return;
+            }
+            
+            loading.classList.add('active');
+            loadingText.textContent = 'Baixando artigos da Wikipédia...';
+            
+            // Buscar conteúdo dos artigos
+            const articlesContent = [];
+            for (let i = 0; i < articles.length; i++) {
+                updateProgress(i + 1, articles.length + 1);
+                loadingText.textContent = `Baixando: ${articles[i]} (${i + 1}/${articles.length})...`;
+                
+                const content = await fetchWikipediaComplete(articles[i], language);
+                if (content) {
+                    articlesContent.push(content);
+                } else {
+                    errorMsg.textContent = `Artigo não encontrado: ${articles[i]}`;
+                    errorMsg.classList.add('active');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            if (articlesContent.length === 0) {
+                loading.classList.remove('active');
+                document.getElementById('progress').classList.remove('active');
+                errorMsg.textContent = 'Nenhum artigo foi encontrado.';
+                errorMsg.classList.add('active');
+                return;
+            }
+            
+            loadingText.textContent = 'Montando HTML completo...';
+            updateProgress(articles.length + 1, articles.length + 1);
+            
+            // Criar HTML completo do livro
+            const htmlContent = `
+<!DOCTYPE html>
+<html lang="${language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        @page {
+            margin: 2cm;
+            size: A4;
+        }
+        
+        body {
+            font-family: 'Linux Libertine', 'Georgia', 'Times New Roman', serif;
+            line-height: 1.6;
+            color: #202122;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .cover {
+            page-break-after: always;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: -20px;
+            padding: 20px;
+        }
+        
+        .cover h1 {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+        }
+        
+        .cover h2 {
+            font-size: 1.8em;
+            font-weight: normal;
+            opacity: 0.9;
+        }
+        
+        .toc {
+            page-break-after: always;
+            padding: 40px 0;
+        }
+        
+        .toc h1 {
+            font-size: 2.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .toc ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .toc li {
+            margin: 15px 0;
+            font-size: 1.1em;
+        }
+        
+        .toc a {
+            color: #0645ad;
+            text-decoration: none;
+            border-bottom: 1px dotted #0645ad;
+        }
+        
+        .toc a:hover {
+            color: #0b0080;
+            border-bottom: 1px solid #0b0080;
+        }
+        
+        .article {
+            page-break-before: always;
+            margin-top: 40px;
+        }
+        
+        .article-title {
+            font-size: 2.2em;
+            border-bottom: 2px solid #a2a9b1;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: #000;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Linux Libertine', 'Georgia', 'Times New Roman', serif;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            color: #000;
+        }
+        
+        h2 {
+            font-size: 1.6em;
+            border-bottom: 1px solid #a2a9b1;
+            padding-bottom: 5px;
+        }
+        
+        h3 {
+            font-size: 1.3em;
+        }
+        
+        p {
+            margin: 0.5em 0;
+            text-align: justify;
+        }
+        
+        img {
+            max-width: 100% !important;
+            height: auto !important;
+            display: block;
+            margin: 15px auto;
+            border: 1px solid #a2a9b1;
+            padding: 5px;
+            background: #f8f9fa;
+        }
+        
+        a {
+            color: #0645ad;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        .infobox {
+            float: right;
+            margin: 0 0 1em 1em;
+            border: 1px solid #a2a9b1;
+            background-color: #f8f9fa;
+            padding: 0.2em;
+            font-size: 0.9em;
+            max-width: 300px;
+        }
+        
+        .infobox img {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        
+        table {
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        
+        table, th, td {
+            border: 1px solid #a2a9b1;
+            padding: 0.4em;
+        }
+        
+        th {
+            background-color: #eaecf0;
+            font-weight: bold;
+        }
+        
+        .mw-editsection {
+            display: none;
+        }
+        
+        .thumb, .thumbinner {
+            border: 1px solid #a2a9b1;
+            padding: 3px;
+            background-color: #f8f9fa;
+            font-size: 0.9em;
+            text-align: center;
+            overflow: hidden;
+            margin: 1em auto;
+            max-width: 100%;
+        }
+        
+        .thumbinner img {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        
+        .thumbcaption {
+            padding: 5px;
+            text-align: left;
+            line-height: 1.4em;
+        }
+        
+        ul, ol {
+            margin: 0.5em 0;
+            padding-left: 2em;
+        }
+        
+        blockquote {
+            margin: 1em 2em;
+            padding: 0.5em 1em;
+            border-left: 3px solid #a2a9b1;
+            background: #f8f9fa;
+        }
+        
+        @media print {
+            .cover {
+                margin: 0;
+            }
+            
+            a {
+                color: #0645ad;
+            }
+            
+            img {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Capa -->
+    <div class="cover">
+        <h1>${title}</h1>
+        ${subtitle ? `<h2>${subtitle}</h2>` : ''}
+    </div>
+    
+    <!-- Índice -->
+    <div class="toc">
+        <h1>Índice</h1>
+        <ul>
+            ${articlesContent.map((article, index) => {
+                const cleanTitle = article.title.replace(/<[^>]*>/g, '');
+                return `<li>${index + 1}. <a href="#article-${index}">${cleanTitle}</a></li>`;
+            }).join('\n            ')}
+        </ul>
+    </div>
+    
+    <!-- Artigos -->
+    ${articlesContent.map((article, index) => {
+        const cleanTitle = article.title.replace(/<[^>]*>/g, '');
+        return `
+    <div class="article" id="article-${index}">
+        <h1 class="article-title">${cleanTitle}</h1>
+        ${article.content}
+    </div>`;
+    }).join('\n    ')}
+</body>
+</html>`;
+            
+            // Criar blob e fazer download
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            loading.classList.remove('active');
+            document.getElementById('progress').classList.remove('active');
+            
+            // Mostrar mensagem de sucesso
+            loadingText.textContent = 'Livro gerado com sucesso!';
+            loading.classList.add('active');
+            
+            setTimeout(() => {
+                loading.classList.remove('active');
+                alert('Arquivo HTML baixado! Abra-o no navegador e use "Imprimir para PDF" (Ctrl+P) para gerar o PDF final com todas as imagens e links funcionais.');
+            }, 1000);
+        }
+
+        document.getElementById('articleInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addArticle();
+            }
+        });
+    </script>
+</body>
+</html>
